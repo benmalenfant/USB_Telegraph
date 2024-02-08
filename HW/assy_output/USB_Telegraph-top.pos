@@ -1,0 +1,38 @@
+### Footprint positions - created on Wed Feb  7 16:03:53 2024 ###
+### Printed by KiCad version 7.0.6
+## Unit = mm, Angle = deg.
+## Side : top
+# Ref     Val                      Package                                        PosX       PosY       Rot  Side
+C1        20pf                     C_0402_1005Metric                          137.0591  -108.7445  -135.0000  top
+C2        20pf                     C_0402_1005Metric                          133.1686  -104.8539  -135.0000  top
+C3        100n                     C_0402_1005Metric                          132.1529  -107.2068  135.0000  top
+C4        100n                     C_0402_1005Metric                          127.0000  -118.6180  -45.0000  top
+C5        100n                     C_0402_1005Metric                          122.9360  -110.2106  -135.0000  top
+C6        100n                     C_0402_1005Metric                          134.8486  -114.7318   45.0000  top
+C7        4.7u                     C_0402_1005Metric                          108.1024  -109.7788  -90.0000  top
+C8        1u                       C_0402_1005Metric                          122.6820  -114.2746  135.0000  top
+C10       100n                     C_0402_1005Metric                          122.0083  -118.2965  -135.0000  top
+D1        FR107                    D_SOD-123F                                 129.1917  -121.9698    0.0000  top
+J1        USB_C_Receptacle_USB2.0  USB_C_Receptacle_G-Switch_GT-USB-7010ASV   102.5000  -112.5000  -90.0000  top
+J2        Conn_02x05_Odd_Even      PinHeader_2x05_P1.27mm_Vertical_SMD        121.9946  -104.8389   90.0000  top
+J5        Conn_01x03               PinSocket_1x03_P2.54mm_Horizontal          148.4423  -115.0325  180.0000  top
+Q1        NP2302FVR                SOT-23                                     135.9745  -121.5929    0.0000  top
+R1        10k                      R_0402_1005Metric                          126.2888  -104.9762   90.0000  top
+R2        1M                       R_0402_1005Metric                          133.5509  -108.5757  135.0000  top
+R3        22                       R_0402_1005Metric                          124.9902  -117.2074   45.0000  top
+R4        22                       R_0402_1005Metric                          125.6961  -117.9061   45.0000  top
+R5        5.1k                     R_0402_1005Metric                          108.1292  -111.8090  -90.0000  top
+R6        5.1k                     R_0402_1005Metric                          108.1278  -113.9190   90.0000  top
+R7        1.5k                     R_0402_1005Metric                          124.9119  -119.5461  135.0000  top
+R8        10k                      R_0402_1005Metric                          134.6242  -117.8541  180.0000  top
+R9        10k                      R_0402_1005Metric                          134.6200  -116.8400    0.0000  top
+R10       22                       R_2010_5025Metric                          112.5474  -105.6386    0.0000  top
+R11       1.5k                     R_0402_1005Metric                          132.8102  -120.6429    0.0000  top
+R12       10k                      R_0402_1005Metric                          128.4732  -102.8700    0.0000  top
+R13       10k                      R_0402_1005Metric                          128.4224  -104.0384  180.0000  top
+RV1       R_Potentiometer          Potentiometer_Bourns_3314J_Vertical        141.3170  -121.0978   90.0000  top
+U1        STM32F103C8Tx            LQFP-48_7x7mm_P0.5mm                       129.0000  -112.5000  -135.0000  top
+U2        XC6206PxxxMR             SOT-23                                     120.5075  -116.4120  -135.0000  top
+U4        USBLC6-2SC6              SOT-23-6                                   112.3950  -119.5832  180.0000  top
+Y1        8MHz                     Crystal_SMD_3225-4Pin_3.2x2.5mm            135.2892  -106.7037  -45.0000  top
+## End
