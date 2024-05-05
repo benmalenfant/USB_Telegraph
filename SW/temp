@@ -1,0 +1,1 @@
+ .\bin\Debug\client.exe "\\.\COM10" 127.0.0.1

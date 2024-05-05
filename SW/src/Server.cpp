@@ -7,7 +7,7 @@
 #define PORT 8888
 #define MAX_CLIENTS 10
 
-#define RCV_TIMEOUT_MS 200
+#define RCV_TIMEOUT_MS 700
 #define SEND_TIMEOUT_MS 700
 
 struct ClientData
@@ -16,6 +16,7 @@ struct ClientData
     sockaddr_in clientAddr;
     std::thread *clientThread;
     bool alive;
+    uint8_t state = 1;
 };
 
 std::vector<ClientData> clientList;
@@ -24,7 +25,7 @@ SOCKET initTCPSocket(int port);
 
 int update_connections(SOCKET listenSocket);
 
-int clientThreadHandler(ClientData *clientData, int state);
+int clientThreadHandler(ClientData *clientData, uint8_t state);
 
 std::string GetLastErrorAsString()
 {
@@ -48,6 +49,7 @@ int main()
 {
     SOCKET sockfd = initTCPSocket(PORT);
 
+    int result = 1;
     while (1)
     {
         update_connections(sockfd);
@@ -56,23 +58,22 @@ int main()
         {
             if (clientList.at(i).alive)
             {
-                clientList.at(i).clientThread = new std::thread(clientThreadHandler, &clientList.at(i),1);
+                clientList.at(i).clientThread = new std::thread(clientThreadHandler, &clientList.at(i),result);
             }
             else
             {
                 closesocket(clientList.at(i).clientSocket);
                 clientList.erase(clientList.begin() + i);
-                printf("KILLINGGG\n");
+                printf("Killing client\n");
             }
         }
-
+        result = 1;
         for (size_t i = 0; i < clientList.size(); i++)
         {
             clientList.at(i).clientThread->join();
+            result = result && clientList.at(i).state;
         }
-
-        //printf("Sockets : %d\n", clientList.size());
-        //Sleep(1000); // Adjust the sleep duration as needed
+        //printf("result %d\n",result);
     }
 
     closesocket(sockfd);
@@ -80,10 +81,10 @@ int main()
     return (0);
 }
 
-int clientThreadHandler(ClientData *clientData, int state)
+int clientThreadHandler(ClientData *clientData, uint8_t state)
 {
     char buffer[2];
-    buffer[0] = 0;
+    buffer[0] = state;
     int bytesSent = send(clientData->clientSocket, (char *)&buffer, 1, 0);
     if (bytesSent == -1)
     {
@@ -99,6 +100,7 @@ int clientThreadHandler(ClientData *clientData, int state)
         clientData->alive = false;
         return (-1);
     }
+    clientData->state = buffer[0];
     return (0);
 }
 
@@ -112,7 +114,7 @@ int update_connections(SOCKET listenSocket)
     FD_SET(listenSocket, &readfds);
 
     struct timeval timeout;
-    timeout.tv_sec = 0; // 5 seconds
+    timeout.tv_sec = 0;
     timeout.tv_usec = 0;
 
     // Wait for incoming connection
@@ -139,6 +141,7 @@ int update_connections(SOCKET listenSocket)
             ClientData clientData;
             clientData.clientSocket = clientSocket;
             clientData.clientAddr = clientAddr;
+            clientData.alive=true;
             clientList.push_back(clientData);
         }
         else
@@ -189,16 +192,6 @@ SOCKET initTCPSocket(int port)
         return INVALID_SOCKET;
     }
 
-    /* // Set the socket to non-blocking mode
-     u_long mode = 1;
-     if (ioctlsocket(sockfd, FIONBIO, &mode) == SOCKET_ERROR)
-     {
-         std::cerr << "ioctlsocket failed with error: " << WSAGetLastError() << std::endl;
-         closesocket(sockfd);
-         WSACleanup();
-         return 1;
-     }
- */
     // Start listening for incoming connections
     if (listen(sockfd, MAX_CLIENTS) == SOCKET_ERROR)
     {

@@ -8,6 +8,25 @@
 
 #define SERVER_PORT 8888
 
+std::string GetLastErrorAsString()
+{
+    DWORD errorMessageID = GetLastError();
+    if (errorMessageID == 0)
+        return std::string(); // No error message has been recorded
+
+    LPSTR messageBuffer = nullptr;
+    size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                 NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                                 (LPSTR)&messageBuffer, 0, NULL);
+    std::string message(messageBuffer, size);
+
+    // Free the buffer.
+    LocalFree(messageBuffer);
+
+    return message;
+}
+
+
 int main(int argc, char *argv[])
 {
     if (argc != 3)
@@ -51,6 +70,11 @@ int main(int argc, char *argv[])
         printf("connect error");
         return 1;
     }
+
+    int timeout1 = 700;
+    setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<char *>(&timeout1), sizeof(timeout1));
+    timeout1 = 700;
+    setsockopt(client_socket, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<char *>(&timeout1), sizeof(timeout1));
 
     printf("Connected to server\n");
 
@@ -103,7 +127,7 @@ int main(int argc, char *argv[])
     {
         if (recv(client_socket, (char*)&buffer, 1, 0) < 0)
         {
-            printf("recv failed\n");
+            std::cerr << "Recv from server failed: " << GetLastErrorAsString() << "\n";
             return(-1);
         }
 
