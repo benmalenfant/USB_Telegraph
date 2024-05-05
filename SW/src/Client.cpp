@@ -1,6 +1,8 @@
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <WS2tcpip.h>
 #include <winsock2.h>
 #include <windows.h>
 
@@ -18,7 +20,7 @@ int main(int argc, char *argv[])
     SOCKET client_socket;
     struct sockaddr_in server;
     HANDLE com_port;
-    char buffer[2], recv_buffer[2];
+    char buffer[2];
 
     // Initialize Winsock
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -35,7 +37,11 @@ int main(int argc, char *argv[])
     }
 
     // Prepare the sockaddr_in structure
-    server.sin_addr.s_addr = inet_addr(argv[2]);
+
+    if (inet_pton(AF_INET, argv[2], &server.sin_addr.s_addr) == 0) {
+        fprintf(stderr, "Invalid address\n");
+        exit(EXIT_FAILURE);
+    }
     server.sin_family = AF_INET;
     server.sin_port = htons(SERVER_PORT);
 
@@ -56,70 +62,70 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    DCB serialParams = { 0 };
-    serialParams.DCBlength = sizeof(serialParams);
+    DCB serialParams;
+    SecureZeroMemory(&serialParams, sizeof(DCB));
+    serialParams.DCBlength = sizeof(DCB);
 
-    GetCommState(com_port, &serialParams);
-    serialParams.BaudRate = 115200;
+    BOOL fSuccess = GetCommState(com_port, &serialParams);
+
+    if (!fSuccess) 
+    {
+      //  Handle the error.
+      printf ("GetCommState failed with error %d.\n", GetLastError());
+      return (-1);
+    }
+    serialParams.BaudRate = CBR_9600;
     serialParams.ByteSize = 8;
     serialParams.StopBits = ONESTOPBIT;
     serialParams.Parity = NOPARITY;
-    SetCommState(com_port, &serialParams);
+    serialParams.fDtrControl=1;
+    fSuccess = SetCommState(com_port, &serialParams);
+
+    if (!fSuccess) 
+    {
+      //  Handle the error.
+      printf ("SetCommState failed with error %d.\n", GetLastError());
+      return (-1);
+    }
+    
 
     // Set timeouts
     COMMTIMEOUTS timeout = {0};
-    timeout.ReadIntervalTimeout = 3000;
-    timeout.ReadTotalTimeoutConstant = 3000;
-    timeout.ReadTotalTimeoutMultiplier = 3000;
-    timeout.WriteTotalTimeoutConstant = 3000;
-    timeout.WriteTotalTimeoutMultiplier = 3000;
+    timeout.ReadIntervalTimeout = 10;
+    timeout.ReadTotalTimeoutConstant = 10;
+    timeout.ReadTotalTimeoutMultiplier = 10;
+    timeout.WriteTotalTimeoutConstant = 10;
+    timeout.WriteTotalTimeoutMultiplier = 10;
 
     SetCommTimeouts(com_port, &timeout);
 
-
-    while(1){
-        DWORD bytesWritten;
-        recv_buffer[0] = 1;
-        if (!WriteFile(com_port, &recv_buffer, 1, &bytesWritten, NULL))
-        {
-            printf("COM Send failed\n");
-        }
-
-        DWORD bytesReadd;
-        //PurgeComm(com_port,PURGE_RXCLEAR);
-        if (!ReadFile(com_port, (char*)buffer, 1, &bytesReadd, NULL))
-        {
-            printf("Error reading from COM port\n");
-        }
-        printf("Read byte from COM port: %d , %d\n",bytesReadd, buffer[0]);
-    }
-
     while (1)
     {
-        if (recv(client_socket, (char*)&recv_buffer, 1, 0) < 0)
+        if (recv(client_socket, (char*)&buffer, 1, 0) < 0)
         {
             printf("recv failed\n");
-            return 1;
+            return(-1);
         }
-        printf("Read byte from server: %d\n", recv_buffer[0]);
 
         DWORD bytesWritten;
-        recv_buffer[0] = 1;
-        if (!WriteFile(com_port, &recv_buffer, 1, &bytesWritten, NULL))
+        if (!WriteFile(com_port, &buffer, 1, &bytesWritten, NULL))
         {
             printf("COM Send failed\n");
+            return(-1);
         }
 
-        DWORD bytesReadd;
+        DWORD bytesRead;
         //PurgeComm(com_port,PURGE_RXCLEAR);
-        if (!ReadFile(com_port, buffer, 1, &bytesReadd, NULL))
+        if (!ReadFile(com_port, (char*)buffer, 1, &bytesRead, NULL))
         {
             printf("Error reading from COM port\n");
+            return(-1);
         }
-        printf("Read byte from COM port: %d , %d\n",bytesReadd, buffer[0]);
+        if(bytesRead == 0){
+            printf("Error reading from COM port\n");
+            return(-1);
+        }
 
-
-        buffer[0]= 150;
         int bytesSent = send(client_socket, (char*)&buffer, 1, 0);
         if(bytesSent == -1){
             printf("SEND ERROR\n");
