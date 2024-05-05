@@ -32,21 +32,24 @@ void loop()
   if (Serial.available())
   {
     sounder_status = Serial.read();
-  }
-  digitalWrite(sounderPin,sounder_status);
+    digitalWrite(sounderPin,sounder_status);
 
-  int sens1_read = analogRead(sense1Pin);
-  int sens2_read = analogRead(sense2Pin);
+    int sens1_read = analogRead(sense1Pin);
+    int sens2_read = analogRead(sense2Pin);
 
-  if (sens1_read < 650 || sens2_read > 150)
-  {
-    Serial.write((uint8_t)1);
+    if (sens1_read < 650 || sens2_read > 150)
+    {
+      Serial.write((uint8_t)1);
+      Serial.flush();
+    }
+    else
+    {
+      Serial.write((uint8_t)0);
+      Serial.flush();
+    }
   }
-  else
-  {
-    Serial.write((uint8_t)0);
-  }
-  delay(70);
+  //delay(70);
+  //delayMicroseconds(10000);
   /*
   Serial.print("S1 : ");
   Serial.print(analogRead(sense1Pin));
