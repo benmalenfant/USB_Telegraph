@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     SOCKET client_socket;
     struct sockaddr_in server;
     HANDLE com_port;
-    char buffer[2], recv_buffer;
+    char buffer[2], recv_buffer[2];
 
     // Initialize Winsock
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -68,37 +68,63 @@ int main(int argc, char *argv[])
 
     // Set timeouts
     COMMTIMEOUTS timeout = {0};
-    timeout.ReadIntervalTimeout = 200;
-    timeout.ReadTotalTimeoutConstant = 200;
-    timeout.ReadTotalTimeoutMultiplier = 50;
-    timeout.WriteTotalTimeoutConstant = 50;
-    timeout.WriteTotalTimeoutMultiplier = 10;
+    timeout.ReadIntervalTimeout = 3000;
+    timeout.ReadTotalTimeoutConstant = 3000;
+    timeout.ReadTotalTimeoutMultiplier = 3000;
+    timeout.WriteTotalTimeoutConstant = 3000;
+    timeout.WriteTotalTimeoutMultiplier = 3000;
 
     SetCommTimeouts(com_port, &timeout);
 
-    while (1)
-    {
-        if (recv(client_socket, &recv_buffer, 1, 0) < 0)
-        {
-            printf("recv failed\n");
-            return 1;
-        }
 
+    while(1){
         DWORD bytesWritten;
+        recv_buffer[0] = 1;
         if (!WriteFile(com_port, &recv_buffer, 1, &bytesWritten, NULL))
         {
             printf("COM Send failed\n");
         }
 
-        DWORD bytesRead;
-        PurgeComm(com_port,PURGE_RXCLEAR);
-        if (!ReadFile(com_port, &buffer, 1, &bytesRead, NULL))
+        DWORD bytesReadd;
+        //PurgeComm(com_port,PURGE_RXCLEAR);
+        if (!ReadFile(com_port, (char*)buffer, 1, &bytesReadd, NULL))
         {
             printf("Error reading from COM port\n");
         }
-        DWORD err = GetLastError();
-        printf("Read byte from COM port: %d\n", buffer[0]);
-        Sleep(500);
+        printf("Read byte from COM port: %d , %d\n",bytesReadd, buffer[0]);
+    }
+
+    while (1)
+    {
+        if (recv(client_socket, (char*)&recv_buffer, 1, 0) < 0)
+        {
+            printf("recv failed\n");
+            return 1;
+        }
+        printf("Read byte from server: %d\n", recv_buffer[0]);
+
+        DWORD bytesWritten;
+        recv_buffer[0] = 1;
+        if (!WriteFile(com_port, &recv_buffer, 1, &bytesWritten, NULL))
+        {
+            printf("COM Send failed\n");
+        }
+
+        DWORD bytesReadd;
+        //PurgeComm(com_port,PURGE_RXCLEAR);
+        if (!ReadFile(com_port, buffer, 1, &bytesReadd, NULL))
+        {
+            printf("Error reading from COM port\n");
+        }
+        printf("Read byte from COM port: %d , %d\n",bytesReadd, buffer[0]);
+
+
+        buffer[0]= 150;
+        int bytesSent = send(client_socket, (char*)&buffer, 1, 0);
+        if(bytesSent == -1){
+            printf("SEND ERROR\n");
+            return(-1);
+        }
     }
 
     // Close the socket and COM port
